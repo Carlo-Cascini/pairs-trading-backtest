@@ -11,7 +11,7 @@ library(dplyr)
 library(parallel)
 library(foreach)
 library(doParallel)
-
+library(dplyr)
 # Read the Excel file
 data <- read_excel("Desktop/tesi master/partial_CI/67_cleaned_etfs.xlsx")
 
