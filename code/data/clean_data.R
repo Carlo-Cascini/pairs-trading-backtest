@@ -45,5 +45,5 @@ prices <- na.locf(prices, na.rm = FALSE)
 
 prices <- na.omit(prices)
 
-output_file <- "/Users/carlocascini/Desktop/pairs-trading/code/data/67_cleaned_etfs.xlsx"
-write.xlsx(as.data.frame(prices), file = output_file, rowNames = TRUE)
+output_file <- "/Users/carlocascini/Desktop/pairs-trading/code/data/67_cleaned_etfs.csv"
+write.csv(as.data.frame(prices), file = output_file, row.names = TRUE)

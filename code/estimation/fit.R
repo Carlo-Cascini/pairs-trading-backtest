@@ -15,9 +15,10 @@ library(pbapply)
 library(lubridate)
 
 # Read data
-data <- read_excel("/Users/carlocascini/Desktop/pairs-trading/code/data/67_cleaned_etfs.xlsx")
-data$...1 <- as.Date(data$...1)
-data_xts <- xts(data[, -1], order.by = data$...1)
+data <- read.csv("/Users/carlocascini/Desktop/pairs-trading/code/data/67_cleaned_etfs.csv")
+colnames(data)[1] <- "Date"
+data$Date <- as.Date(data$Date)  
+data_xts <- xts(data[, -1], order.by = data$Date)
 
 # Load function definitions
 source("/Users/carlocascini/Desktop/pairs-trading/code/estimation/func_partial_ci.R")
