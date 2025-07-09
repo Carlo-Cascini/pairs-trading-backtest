@@ -1,4 +1,4 @@
-# --- Functions for Partial CI Analysis ---
+# --- Partial Cointegration Estimation Functions ---
 
 calculate_rsq_MR <- function(stock_a, stock_b, start_date, end_date) {
   tryCatch({
@@ -30,13 +30,13 @@ process_window <- function(start_date, end_date, file_name) {
   analysis_start_date <- as.Date(start_date)
   analysis_end_date <- as.Date(end_date)
   
-  message(paste("Processing period:", analysis_start_date, "to", analysis_end_date))
+  message(paste("🔄 Processing period:", analysis_start_date, "to", analysis_end_date))
   
   results <- lapply(stock_pairs, function(pair) {
     calculate_rsq_MR(pair[1], pair[2], analysis_start_date, analysis_end_date)
   })
   
-  results <- Filter(function(x) !is.null(x), results)
+  results <- Filter(Negate(is.null), results)
   
   var_name <- gsub("\\.RData$", "", basename(file_name))
   assign(var_name, results, envir = .GlobalEnv)
@@ -44,8 +44,7 @@ process_window <- function(start_date, end_date, file_name) {
   save(list = var_name, file = file_name)
   
   elapsed_time <- Sys.time() - start_time
-  message(paste("Number of results:", length(results)))
-  message(paste("Time taken for period:", analysis_start_date, "to", analysis_end_date, ":", format(elapsed_time, digits = 2)))
+  message(paste("✅ Results:", length(results), " | Time:", format(elapsed_time, digits = 2)))
   
   return(file_name)
 }

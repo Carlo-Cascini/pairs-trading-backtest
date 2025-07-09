@@ -1,0 +1,63 @@
+---
+title: "Pairs Trading - State Space Models"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+# Load required packages
+library(xts)
+library(readr)
+library(partialCI)
+library(zoo)
+library(lubridate)
+# Load stock list and generation function
+source("/Users/carlocascini/Desktop/pairs-trading/src/stock_list.R")
+source("/Users/carlocascini/Desktop/pairs-trading/src/generate_dataset.R")
+source("/Users/carlocascini/Desktop/pairs-trading/src/func_partial_ci.R")
+
+```
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+
+# Set date range and output path
+begin_date <- as.Date("2010-01-01")
+end_date <- as.Date("2024-05-01")
+output_file <- "/Users/carlocascini/Desktop/pairs-trading/data/cleaned_etfs.csv"
+
+# Generate the cleaned price dataset
+generate_dataset(stock_namelist, begin_date, end_date, output_file)
+```
+
+```{r setup}
+# Load CSV and convert to xts
+df <- read_csv(output_file)
+df$Date <- as.Date(df$Date)
+data_xts <- xts(df[, -1], order.by = df$Date)
+
+# Define tickers for estimation
+# colnames(df)[-1]. to take all the etfs that have been outputted in clean data
+stock_tickers <- colnames(df)[-1]. #### it will take several hours to run
+stock_pairs <- combn(stock_tickers, 2, simplify = FALSE)
+
+# Define estimation settings
+estimation_years <- 3
+rolling_step_months <- 6
+# With these settings we can decide how long should be the estimation period back in the time
+# And with the rolling step months we decide
+
+save_dir <- "/Users/carlocascini/Desktop/pairs-trading/results/fit"
+
+# Run the rolling backtest
+run_partial_ci_backtest(stock_pairs, data_xts, estimation_years, rolling_step_months, save_dir)
+
+```
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+
+
+
+```
+
+

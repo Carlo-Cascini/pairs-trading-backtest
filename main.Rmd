@@ -1,0 +1,17 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, warning=FALSE, message=FALSE}
+source("/Users/carlocascini/Desktop/pairs-trading/src/stock_list.R")
+source("/Users/carlocascini/Desktop/pairs-trading/src/generate_dataset.R")
+
+begin_date <- as.Date("2010-01-01")
+end_date <- as.Date("2024-05-01")
+output_file <- "/Users/carlocascini/Desktop/pairs-trading/data/cleaned_etfs.csv"
+
+generate_dataset(stock_namelist, begin_date, end_date, output_file)
+```
