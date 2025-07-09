@@ -10,6 +10,8 @@ library(ggplot2)
 library(writexl)
 library(tidyr)
 library(dplyr)
+library(lubridate)
+
 
 # Load custom functions
 source("/Users/carlocascini/Desktop/pairs-trading/code/backtest/Backtest_functions.R")
