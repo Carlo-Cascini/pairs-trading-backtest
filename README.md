@@ -1,4 +1,4 @@
-# 📈 Pairs Trading Backtest with State-Space Models
+#  Pairs Trading Backtest with State-Space Models
 
 This project implements a **systematic backtesting framework** for pairs trading strategies using **state-space models** based on **Partial Cointegration (PCI)** techniques.It was developed as part of my Master's thesis in Finance, designed for:
 
@@ -8,13 +8,13 @@ This project implements a **systematic backtesting framework** for pairs trading
 
 ---
 
-## 🚀 Core Features
+##  Core Features
 
-- ✅ ETFs **data fetching and cleaning**
-- 📊 **Mean-reversion parameters estimation** using Partial Cointegration (PCI)
-- 🔍 **Dynamic pair selection** using estimated PCI parameters
-- 🔁 **Rolling-window estimation** with customizable training horizon and rolling step
-- 📉 **Backtesting** on a portfolio of selected ETF pairs
+-  ETFs **data fetching and cleaning**
+-  **Mean-reversion parameters estimation** using Partial Cointegration (PCI)
+-  **Dynamic pair selection** using estimated PCI parameters
+-  **Rolling-window estimation** with customizable training horizon and rolling step
+-  **Backtesting** on a portfolio of selected ETF pairs
 
 ---
 
