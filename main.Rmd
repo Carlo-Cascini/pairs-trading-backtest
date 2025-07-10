@@ -4,14 +4,210 @@ output:
   html_document:
     df_print: paged
 ---
+```{r, warning=FALSE, message=FALSE, eval=FALSE}
+library(here)
+setwd(here::here())
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(purrr)
 
-```{r, warning=FALSE, message=FALSE}
-source("/Users/carlocascini/Desktop/pairs-trading/src/stock_list.R")
-source("/Users/carlocascini/Desktop/pairs-trading/src/generate_dataset.R")
+```
 
+
+```{r, warning=FALSE, message=FALSE, eval=FALSE}
+source("src/stock_list.R")
+source("src/generate_dataset.R")
 begin_date <- as.Date("2010-01-01")
 end_date <- as.Date("2024-05-01")
-output_file <- "/Users/carlocascini/Desktop/pairs-trading/data/cleaned_etfs.csv"
+output_file <- "data/cleaned_etfs.csv"
 
 generate_dataset(stock_namelist, begin_date, end_date, output_file)
+```
+
+```{r, warning=FALSE, message=FALSE,eval=FALSE}
+source("src/func_partial_ci.R")
+# load csv created in the chunk above
+df <- read.csv(output_file)
+df$Date <- as.Date(df[, 1])  # Prima colonna come data
+data_xts <- xts(df[, -1], order.by = df$Date)
+
+# Define the ticker you want to fit
+stock_tickers <- colnames(data_xts)
+
+# Crea le combinazioni di coppie da stimare
+stock_pairs <- combn(stock_tickers, 2, simplify = FALSE)
+
+# Parametri di rolling
+estimation_years <- 3
+rolling_step_months <- 6
+save_dir <- "results/fit"
+
+# Esegui il backtest rolling
+run_partial_ci_backtest(stock_pairs, data_xts, estimation_years, rolling_step_months, save_dir)
+```
+
+```{r, warning=FALSE, message=FALSE}
+source("src/filtering_func.R")
+
+results_folder <- "results/fit"
+save_dir <- "results/pairs"
+
+# Filter parameters
+rho_min <- 0.9
+rho_max <- 0.98
+rsq_min <- 0.9
+loglik_max <- 0
+
+for (year in 2013:2024) {
+  for (half in c("H1", "H2")) {
+    process_period(year, half,
+                   results_folder = results_folder,
+                   rho_min = rho_min,
+                   rho_max = rho_max,
+                   rsq_min = rsq_min,
+                   loglik_max = loglik_max,
+                   save_dir = save_dir)
+  }
+}
+
+```
+```{r, warning=FALSE, message=FALSE}
+
+pairs_dir <- "results/pairs/"
+
+#  list all the pairs
+pair_files <- list.files(pairs_dir, pattern = "^pairs_.*\\.RData$", full.names = TRUE)
+
+all_pairs <- list()
+
+for (file in pair_files) {
+  temp_env <- new.env()
+  load(file, envir = temp_env)
+  var_name <- ls(temp_env)[grepl("^pairs_", ls(temp_env))]
+  pairs <- get(var_name, envir = temp_env)
+  all_pairs[[gsub("pairs_|\\.RData", "", basename(file))]] <- pairs
+}
+
+# Rbind all the pairs in a unique dataset
+pairs_df <- do.call(rbind, lapply(names(all_pairs), function(period) {
+  do.call(rbind, lapply(all_pairs[[period]], function(pair) {
+    data.frame(period = period, stock_a = pair[1], stock_b = pair[2])
+  }))
+}))
+
+```
+
+
+```{r, warning=FALSE}
+
+# Count the number of selected pairs for each period
+pair_counts <- pairs_df %>%
+  group_by(period) %>%
+  summarise(num_pairs = n())
+
+ggplot(pair_counts, aes(x = period, y = num_pairs)) +
+  geom_col(fill = "steelblue") +
+  theme_minimal() +
+  labs(title = "📈 Number of Selected Pairs per Period",
+       x = "Period",
+       y = "# Pairs") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r, warning=FALSE, message=FALSE}
+
+#  Crea nome univoco per ogni coppia (ordine alfabetico per evitare duplicati invertiti)
+pairs_df <- pairs_df %>%
+  mutate(pair = paste(pmin(stock_a, stock_b), pmax(stock_a, stock_b), sep = " - "))
+
+#  Conta le ricorrenze per ciascuna coppia
+top_pairs <- pairs_df %>%
+  count(pair, sort = TRUE) %>%
+  top_n(10, n)
+
+# ️ Grafico a barre
+ggplot(top_pairs, aes(x = reorder(pair, n), y = n)) +
+  geom_col(fill = "darkorange") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "🔁 Most Frequent PCI Pairs Across Periods",
+       x = "Pair",
+       y = "Number of Periods Cointegrated")
+```
+
+
+```{r, warning=FALSE, message=FALSE}
+source("src/plots_func.R")
+
+walk(top_pairs$pair, function(p) {
+  tickers <- unlist(strsplit(p, " - "))
+  print(plot_pair_log_price_change(data_xts, tickers[1], tickers[2],
+                                   start_date = "2014-01-01", end_date = "2024-01-01"))
+})
+
+```
+
+
+
+```{r, warning=FALSE, message=FALSE}
+```
+
+
+
+```{r, warning=FALSE, message=FALSE}
+```
+
+
+
+
+```{r, warning=FALSE, message=FALSE}
+```
+
+
+
+
+```{r, warning=FALSE, message=FALSE}
+```
+
+
+
+
+```{r, warning=FALSE, message=FALSE}
+```
+
+
+
+
+```{r, warning=FALSE, message=FALSE}
+```
+
+
+
+
+```{r, warning=FALSE, message=FALSE}
+```
+
+
+
+
+```{r, warning=FALSE, message=FALSE}
+```
+
+
+
+
+```{r, warning=FALSE, message=FALSE}
+```
+
+
+
+
+```{r, warning=FALSE, message=FALSE}
+```
+
+
+
+
+```{r, warning=FALSE, message=FALSE}
 ```

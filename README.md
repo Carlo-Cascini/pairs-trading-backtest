@@ -18,7 +18,7 @@ This project implements a **systematic backtesting framework** for pairs trading
 
 ---
 
-## 📁 Repository Structure
+##  Repository Structure
 
 
 pairs-trading-backtest/
