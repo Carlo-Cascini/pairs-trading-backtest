@@ -1,17 +1,24 @@
 ---
 title: "R Notebook"
-output:
+output: 
+  pdf_document: 
+    latex_engine: xelatex
   html_document:
     df_print: paged
 ---
-```{r, warning=FALSE, message=FALSE, eval=FALSE}
+
+```{r, warning=FALSE, message=FALSE}
 library(here)
 setwd(here::here())
 library(dplyr)
 library(ggplot2)
 library(tidyr)
 library(purrr)
-
+library(xts)
+output_file <- "data/cleaned_etfs.csv"
+df <- read.csv(output_file)
+df$Date <- as.Date(df[, 1])  
+data_xts <- xts(df[, -1], order.by = df$Date)
 ```
 
 
@@ -28,9 +35,6 @@ generate_dataset(stock_namelist, begin_date, end_date, output_file)
 ```{r, warning=FALSE, message=FALSE,eval=FALSE}
 source("src/func_partial_ci.R")
 # load csv created in the chunk above
-df <- read.csv(output_file)
-df$Date <- as.Date(df[, 1])  # Prima colonna come data
-data_xts <- xts(df[, -1], order.by = df$Date)
 
 # Define the ticker you want to fit
 stock_tickers <- colnames(data_xts)
@@ -109,7 +113,7 @@ pair_counts <- pairs_df %>%
 ggplot(pair_counts, aes(x = period, y = num_pairs)) +
   geom_col(fill = "steelblue") +
   theme_minimal() +
-  labs(title = "📈 Number of Selected Pairs per Period",
+  labs(title = " Number of Selected Pairs per Period",
        x = "Period",
        y = "# Pairs") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -131,7 +135,7 @@ ggplot(top_pairs, aes(x = reorder(pair, n), y = n)) +
   geom_col(fill = "darkorange") +
   coord_flip() +
   theme_minimal() +
-  labs(title = "🔁 Most Frequent PCI Pairs Across Periods",
+  labs(title = " Most Frequent PCI Pairs Across Periods",
        x = "Pair",
        y = "Number of Periods Cointegrated")
 ```
@@ -147,13 +151,6 @@ walk(top_pairs$pair, function(p) {
 })
 
 ```
-
-
-
-```{r, warning=FALSE, message=FALSE}
-```
-
-
 
 ```{r, warning=FALSE, message=FALSE}
 ```
