@@ -1,54 +1,91 @@
 ---
-title: "R Notebook"
+title: "State Space models for Pairs Trading"
 output: 
   pdf_document: 
     latex_engine: xelatex
   html_document:
     df_print: paged
 ---
-
+```
+Import the library and set the path 
+```
 ```{r, warning=FALSE, message=FALSE}
+# Set working directory to project root
 library(here)
 setwd(here::here())
+
+# Core tidyverse and time series tools
 library(dplyr)
-library(ggplot2)
 library(tidyr)
 library(purrr)
+library(ggplot2)
+
+# Time series and financial data
 library(xts)
-output_file <- "data/cleaned_etfs.csv"
-df <- read.csv(output_file)
-df$Date <- as.Date(df[, 1])  
-data_xts <- xts(df[, -1], order.by = df$Date)
+library(zoo)
+library(TTR)
+library(quantmod)
+
+# Kalman filter and Partial CI
+library(KFAS)
+library(partialCI)
+
+# I/O
+library(readxl)
+library(writexl)
+
 ```
 
-
+```
+Generate the dataset needed 
+```
 ```{r, warning=FALSE, message=FALSE, eval=FALSE}
 source("src/stock_list.R")
 source("src/generate_dataset.R")
 begin_date <- as.Date("2010-01-01")
 end_date <- as.Date("2024-05-01")
 output_file <- "data/cleaned_etfs.csv"
-
-generate_dataset(stock_namelist, begin_date, end_date, output_file)
 ```
 
-```{r, warning=FALSE, message=FALSE,eval=FALSE}
-source("src/func_partial_ci.R")
-# load csv created in the chunk above
+```{r, warning=FALSE, message=FALSE, eval=FALSE}
+generate_dataset(stock_namelist, begin_date, end_date, output_file)
+```
+```
+Load the dataset created
+```
+```{r, warning=FALSE, message=FALSE}
+output_file <- "data/cleaned_etfs.csv" 
+df <- read.csv(output_file)
+df$Date <- as.Date(df[, 1])  
+data_xts <- xts(df[, -1], order.by = df$Date)
+```
 
+```
+Define the estimation period you want to choose and the rolling window 
+Note that it takes 3-4 hours to run
+```
+
+```{r, warning=FALSE, message=FALSE}
+source("src/func_partial_ci.R")
 # Define the ticker you want to fit
 stock_tickers <- colnames(data_xts)
 
-# Crea le combinazioni di coppie da stimare
+# Creates the combination to estimate
 stock_pairs <- combn(stock_tickers, 2, simplify = FALSE)
 
-# Parametri di rolling
+# Fitting parameters
 estimation_years <- 3
 rolling_step_months <- 6
 save_dir <- "results/fit"
+```
 
-# Esegui il backtest rolling
+```{r, warning=FALSE, message=FALSE,eval=FALSE}
+# Execute the function given defined parameters
 run_partial_ci_backtest(stock_pairs, data_xts, estimation_years, rolling_step_months, save_dir)
+```
+
+```
+Filter for the fitted parameters that you want to consider in the backtest
 ```
 
 ```{r, warning=FALSE, message=FALSE}
@@ -76,6 +113,11 @@ for (year in 2013:2024) {
 }
 
 ```
+
+```
+Merge all the selected pairs in a dataframe
+```
+
 ```{r, warning=FALSE, message=FALSE}
 
 pairs_dir <- "results/pairs/"
@@ -102,6 +144,9 @@ pairs_df <- do.call(rbind, lapply(names(all_pairs), function(period) {
 
 ```
 
+```
+Statistics of the selected pairs
+```
 
 ```{r, warning=FALSE}
 
@@ -119,18 +164,21 @@ ggplot(pair_counts, aes(x = period, y = num_pairs)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+```
+Statistics of the pairs
+```
+
 ```{r, warning=FALSE, message=FALSE}
 
-#  Crea nome univoco per ogni coppia (ordine alfabetico per evitare duplicati invertiti)
+#  Uniqie pair name
 pairs_df <- pairs_df %>%
   mutate(pair = paste(pmin(stock_a, stock_b), pmax(stock_a, stock_b), sep = " - "))
 
-#  Conta le ricorrenze per ciascuna coppia
+#  only the top 10
 top_pairs <- pairs_df %>%
   count(pair, sort = TRUE) %>%
   top_n(10, n)
 
-# ️ Grafico a barre
 ggplot(top_pairs, aes(x = reorder(pair, n), y = n)) +
   geom_col(fill = "darkorange") +
   coord_flip() +
@@ -143,6 +191,17 @@ ggplot(top_pairs, aes(x = reorder(pair, n), y = n)) +
 
 ```{r, warning=FALSE, message=FALSE}
 source("src/plots_func.R")
+pair_counts <- pairs_df %>%
+  group_by(period) %>%
+  summarise(num_pairs = n())
+#  Uniqie pair name
+pairs_df <- pairs_df %>%
+  mutate(pair = paste(pmin(stock_a, stock_b), pmax(stock_a, stock_b), sep = " - "))
+
+#  plot only the top 5
+top_pairs <- pairs_df %>%
+  count(pair, sort = TRUE) %>%
+  top_n(3, n)
 
 walk(top_pairs$pair, function(p) {
   tickers <- unlist(strsplit(p, " - "))
@@ -153,6 +212,24 @@ walk(top_pairs$pair, function(p) {
 ```
 
 ```{r, warning=FALSE, message=FALSE}
+
+source("/Users/carlocascini/Desktop/pairs-trading/src/Backtest_func.R")
+
+result <- run_pairs_trading_strategy(
+  Y = data_xts,
+  tickers = c("EWA", "EWH"),
+  test_start = "2015-01-01",
+  test_end = "2015-12-30",
+  training_years = estimation_years,
+  transaction_cost = 0.001,
+  threshold = 1,
+  risk_free_rate = 0.02,
+  plot = TRUE
+)
+
+# View performance
+print(result$performance)
+
 ```
 
 

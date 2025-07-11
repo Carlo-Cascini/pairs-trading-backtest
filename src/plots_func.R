@@ -35,8 +35,8 @@ plot_pair_log_price_change <- function(data_xts, ticker1, ticker2,
       title = paste("Log-Price Change of", ticker1, "and", ticker2),
       subtitle = paste("From", ifelse(is.null(start_date), min(index(data_xts)), start_date),
                        "to", ifelse(is.null(end_date), max(index(data_xts)), end_date)),
-      x = "Date", y = "Log Price Change (from first obs)",
-      color = "ETF"
+      x = "Date", y = "Log Price Change",
+      color = "ETFs"
     ) +
     scale_color_manual(values = colors)
 }
